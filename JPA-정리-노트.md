@@ -4,6 +4,22 @@
 - 이는 프록시에서 실제 entity를 반환하는것이 아닌 persistence context에 실제 엔티티 생성을 요청하고 생성된 실제 엔티티를 프록시 객체의 참조 변수에 할당하는것을 말함
 - 즉 lazyloading 된 데이터들은 proxy 형태로 리턴됨
 
+### Jpa Proxy 초기화 유의사항
+
+ManyToOne
+
+- Hibernate.initialize() or Hibernate.unproxy
+- 초기화시에는 프록시객체의 필드에 접근하면 초기화되는걸로 알고있다.  
+  다만 한가지 유의해야할 점이 **getId(pk)** 와 같은 pk 에 접근하는것은 초기화되지 않는다. 왜냐하면 프록시 객체에는 이미 식별자 값을 가지고 있기 때문이다.  
+  그래서 추가 쿼리를 발생시키지 않고 갖고있는 식별자를 리턴한다.  
+  그렇기 때문에 초기화를 하기 위해선 식별자값을 제외한 필드에 접근해야 초기화 할 수 있다.
+
+OneToMany
+
+- 해당 프록시객체는 Collection 형태로 갖고있을것이다.  
+  컬렉션 객체의 요소에 접근하면 초기화가 된다  
+  **ex) getList() -> x , getList().get(1) -> o**
+
 ### **그렇다면 OneToMany LazyLoading 의 경우는 왜 실제 엔티티를 반환하는가??**
 
 예를들어 Team (1) <-> Member(n) 의 관계를 조회하게 된다면
