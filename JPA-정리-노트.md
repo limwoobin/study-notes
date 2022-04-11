@@ -1,7 +1,8 @@
-### **LazyLoading 에서 debug 모드로 조회시 왜 data를 안가지고 있는가?**
+### **LazyLoading 시 왜 data를 안가지고 있는가?**
 
 - LazyLoading 시 추가쿼리를 발생해서 데이터를 가져오는것을 proxy 초기화라고함
-- 이는 프록시에서 실제 entity를 반환하는것이 아닌 프록시의 target이 entity 와 연결되는것을 의미
+- 이는 프록시에서 실제 entity를 반환하는것이 아닌 persistence context에 실제 엔티티 생성을 요청하고 생성된 실제 엔티티를 프록시 객체의 참조 변수에 할당하는것을 말함
+- 즉 lazyloading 된 데이터들은 proxy 형태로 리턴됨
 
 ### **그렇다면 OneToMany LazyLoading 의 경우는 왜 실제 엔티티를 반환하는가??**
 
@@ -11,6 +12,17 @@ Member의 경우는 Set or List 와 같은 Collection 객체의 형식을 갖게
 객체를 갖는다. 이 PersistentCollection 은 Jpa의 컬렉션을 관리하면서 프록시의 역할도 같이 한다.  
 하지만 Persistent Collection 객체 내의 entity 요소들은 proxy가 아닌 실제 entity 객체이다.  
 이 부분은 라이브러리를 뜯어서 보려고 시도했지만 아직 명확한 답을 찾지 못했다...
+
+### **getOne() , findOne() 의 차이**
+
+findOne
+
+- em.find 와 같이 실제 엔티티 객체를 리턴
+
+getOne
+
+- em.getReference 와 같이 프록시 객체를 리턴
+- 존재하지 않는 id를 통해 조회시 javax.persistence.EntityNotFoundException 을 리턴한다.
 
 > #### **JPA 조회 특징**
 >
