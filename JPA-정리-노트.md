@@ -25,9 +25,11 @@ OneToMany
 예를들어 Team (1) <-> Member(n) 의 관계를 조회하게 된다면
 Member의 경우는 Set or List 와 같은 Collection 객체의 형식을 갖게 된다
 이때 Jpa에서는 컬렉션의 효율적인 관리를 위해 PersistentBag(List) or PersistentSet 등의 컬렉션을 이용해
-객체를 갖는다. 이 PersistentCollection 은 Jpa의 컬렉션을 관리하면서 프록시의 역할도 같이 한다.  
-하지만 Persistent Collection 객체 내의 entity 요소들은 proxy가 아닌 실제 entity 객체이다.  
-이 부분은 라이브러리를 뜯어서 보려고 시도했지만 아직 명확한 답을 찾지 못했다...
+객체를 갖는다. 이 PersistentCollection 은 컬렉션 래퍼가 지연로딩을 처리해준다.  
+그렇기 때문에 컬렉션 내의 데이터들은 컬렉션 래퍼가 대신 지연로딩을 해주기때문에 굳이 지연로딩을 할 필요도,
+프록시 객체로 들고있을 이유도 없다. 그래서 실제 entity 를 들고있는 것이다.
+
+<hr>
 
 ### **getOne() , findOne() 의 차이**
 
