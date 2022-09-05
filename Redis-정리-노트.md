@@ -18,7 +18,8 @@ redis에서 제공하는 lock 을 이용할 수 있는 lib
 
 <br>
 
-pub / sub 방식
+pub / sub 시스템을 사용함  
+락이 해제될때마다 subscribe중인 client들에게 `락 획득을 시도해도 된다`라는 메시지를 보낸다.
 
 ## AOF
 
