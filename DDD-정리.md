@@ -1,1 +1,0 @@
-# DDD (Domain Driven Develop)
