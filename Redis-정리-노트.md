@@ -44,3 +44,31 @@ save 60 10000   60초(1분) 동안 10000번 이상 key 변경이 발생하면 �
   - AOF는 text파일이어서 수정이 가능함
 
 ## cluster
+
+
+----------------------------------------------------------------
+Redis 유튜브 영상 정리 (https://www.youtube.com/watch?v=mPB2CZiAkKM&t=4634s)
+
+Memcached는 컬렉션 제공안함, Redis는 제공함
+
+Redis는 자료구조가 atomic하다 (race condition을 피할 수 있음)
+
+
+## Redis 사용처
+- Remote Data Store: A서버, B서버, C서버에서 데이터를 공유하고 싶을때
+- 인증 토큰 저장 (Strings, Hash)
+- Ranking 보드(Sorted Set)
+- 유저 API Limit
+- job queue (list)
+
+
+### Sorted Sets (중요)
+이 자료구조의 score는 double 타입이기에 값이 정확하지 않을 수 있음.
+컴퓨터에서는 실수가 표현할 수 없는 정수값들이 존재
+
+
+## Collection 주의사항
+- 하나의 컬렉션에 너무 많은 아이템을 담으면 좋지 않음
+  - 10000개 이하 몇천개 수준으로 유지하는게 좋음
+- Expire는 Collection의 Item개별로 걸리지않고 전체 Collection에 대해서만 걸림
+  - 즉 해당 10000개의 아이템을 가진 Collection에 expire가 걸려있다면 그 시간 후에는 10000개의 아이템이 모두 삭제
