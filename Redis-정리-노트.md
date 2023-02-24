@@ -72,3 +72,43 @@ Redis는 자료구조가 atomic하다 (race condition을 피할 수 있음)
   - 10000개 이하 몇천개 수준으로 유지하는게 좋음
 - Expire는 Collection의 Item개별로 걸리지않고 전체 Collection에 대해서만 걸림
   - 즉 해당 10000개의 아이템을 가진 Collection에 expire가 걸려있다면 그 시간 후에는 10000개의 아이템이 모두 삭제
+
+
+  ## Redis 운영
+  - 메모리 관리를 잘하자
+  - O(N) 관련 명령어는 주의하자
+  - Replication
+  - 권장 설정 Tip
+
+
+### 메모리 관리
+- Redis는 In-Memory Data Store
+- Physical Memory 이상을 사용하면 문제가 발생
+  - Swap이 있다면 Swap 사용으로 해당 메모리 page접근시 마다 늦어짐
+- Maxmemory를 설정하더라도 이보다 더 사용할 가능성이 큼
+- RSS 값을 모니터링 해야함
+
+##### RSS: Resident Set Size이며 해당 프로세스에 할당되고 RAM에있는 메모리 양을 표시하는 데 사용
+
+- 많은 업체가 현재 메모리를 사용해서 Swap을 쓰고 있다는것을 모를때가 많음
+- 큰 메모리를 사용하는 instance 하나보다는 적은 메모리를 사용하는 instance 여러개가 안전함
+- Redi는 메모리 파편화가 발생할 수 있음
+  - 다양한 사이즈를 가지는 데이터 보다는 유사한 크기의 데이터를 가지는 경우가 메모리 파편화가 덜 일어남(더 효율적)
+
+### 메모리가 부족할때는?
+- 장비를 Migration
+- 있는 데이터를 줄이자
+  - 데이터를 일정 수준에서만 사용하도록 특정 데이터를 줄임
+  - 이미 swap을 사용중이라면 프로세스를 재시작해야함
+
+### 메모리를 줄이기 위한 설정
+기본적으로 Collection들은 다음과 같이 사용
+- Hash -> HashTablr을 하나 더 사용
+- Sorted Set -> Skiplist와 HashTable을 이용
+- Set -> HashTable 사용
+- 해당 자료구조들은 메모리를 많이 사용
+
+Ziplist를 이용하자(??)
+- List, hash, sorted set 등을  ziplist로 대체해서 처리하는 설정이 존재함
+
+- hash-max-ziplist-entries 설정(?? 자료구조별로 있는듯)
