@@ -116,6 +116,7 @@ In-Memory 특성 상, 적은 개수의 데이터는 선형탐색을 해도 빠�
 hash-max-ziplist-entries, hash-max-ziplist-value 등등 자료구조 별로 설정이 가능함
 (특정 개수or사이즈 이하는 컬렉션이 아닌 ziplist를 사용하게 설정, 특정 개수or사이즈가 넘어서면 원래의 컬렉션을 사용)
 
+<br>
 
 ## O(N) 관련 명령어는 주의하자
 Redis는 싱글 스레드이다. 그렇기에 한번에 하나의 작업만 처리할 수 있음
@@ -137,4 +138,29 @@ Collection의 모든 item을 가져와야 할 때 ?
 - 큰 Collection을 작은 여러개의 Collection으로 나누어 저장한다
   - 하나당 몇천개 수준으로 저장하는게 좋음
 
-## Replication
+<br>
+
+## Redis Replication
+- Async Replication
+  - Replication Lag이 발생할 수 있음
+
+Consistent Hashing (??)
+
+<br>
+
+## 결론
+- 메모리를 빡빡하게 쓸 경우 관리하기 어려움
+  - 32기가 장비라면 24기가 이상 사용시 (75%이상) 장비증설을 고려해야함
+  - write가 heavy할때는 migration을 매우 주의해야함
+- Client - output - buffer - limit 설정이 필요
+
+### Redis as Cache
+- 캐시의 경우 문제가 적게 발생
+  - Redis가 문제가 있을때 DB등의 부하가 어느정도 증가하는지는 확인 필요
+
+### Redis as Consistent Hashing
+- 무조건 Primary/Secondary 구조로 구성이 필요
+- 메모리를 절대 빡빡하게 사용해선 안됨
+  - 정기적인 migration 필요
+  - 가능하면 자동화 툴 만들어 이용
+- RDB/AOF 가 필요하다면 Secondary에서만 구동
