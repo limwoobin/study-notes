@@ -47,6 +47,7 @@ save 60 10000   60초(1분) 동안 10000번 이상 key 변경이 발생하면 �
 
 
 ----------------------------------------------------------------
+
 Redis 유튜브 영상 정리 (https://www.youtube.com/watch?v=mPB2CZiAkKM&t=4634s)
 
 Memcached는 컬렉션 제공안함, Redis는 제공함
@@ -81,7 +82,7 @@ Redis는 자료구조가 atomic하다 (race condition을 피할 수 있음)
   - 권장 설정 Tip
 
 
-### 메모리 관리
+## 메모리 관리
 - Redis는 In-Memory Data Store
 - Physical Memory 이상을 사용하면 문제가 발생
   - Swap이 있다면 Swap 사용으로 해당 메모리 page접근시 마다 늦어짐
@@ -110,5 +111,30 @@ Redis는 자료구조가 atomic하다 (race condition을 피할 수 있음)
 
 Ziplist를 이용하자(??)
 - List, hash, sorted set 등을  ziplist로 대체해서 처리하는 설정이 존재함
+In-Memory 특성 상, 적은 개수의 데이터는 선형탐색을 해도 빠르다
 
-- hash-max-ziplist-entries 설정(?? 자료구조별로 있는듯)
+hash-max-ziplist-entries, hash-max-ziplist-value 등등 자료구조 별로 설정이 가능함
+(특정 개수or사이즈 이하는 컬렉션이 아닌 ziplist를 사용하게 설정, 특정 개수or사이즈가 넘어서면 원래의 컬렉션을 사용)
+
+
+## O(N) 관련 명령어는 주의하자
+Redis는 싱글 스레드이다. 그렇기에 한번에 하나의 작업만 처리할 수 있음
+단순한 get/set 작업의 경우 Redis는 초당 10만 TPS 이상 처리가능 (CPU속도에 영향받기는 함)
+
+한번에 하나의 명령만 수행가능한데 만약 긴 시간이 필요한 명령을 수행하면? 큰일난다
+
+대표적인 O(N) 명령들
+- KEYS
+- FLUSHALL, FLUSHDB
+- Delete Collections
+- Get ALL Collections
+
+그럼 KEYS는 어떻게 대체할것인지?
+- scan 명령을 사용하는 것으로 하나의 긴 명령을 짧은 여러번의 명렁으로 바꿀 수 있음
+
+Collection의 모든 item을 가져와야 할 때 ?
+- Collection의 일부만 가져온다
+- 큰 Collection을 작은 여러개의 Collection으로 나누어 저장한다
+  - 하나당 몇천개 수준으로 저장하는게 좋음
+
+## Replication
