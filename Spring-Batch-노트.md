@@ -48,9 +48,21 @@ Write - 데이터를 수정된 양식으로 다시 저장한다
 
 
 #### DB 스키마 생성
-- batch_step_execution_context
-- batch_job_instance
-- batch_step_execution
-- batch_job_execution
-- batch_job_execution_params
-- batch_job_execution_context
+[Job] 관련 테이블
+batch_job_instance
+- job 실행시 jobInstance 정보가 저장, job_name과 job_key를 키로 하여 하나의 데이터가 저장
+- 동일한 job_name과 job_key로 중복 저장될 수 없음
+batch_job_execution
+- job 실행정보가 저장, job의 생성, 시작, 종료 시간, 실행상태, 메시지 등을 관리
+batch_job_execution_params
+- job과 함께 실행되는 jobParameter 정보 저장
+batch_job_execution_context
+- job의 실행동안 여러가지 상태정보, 공유 데이터를 직렬화(json)해서 저장
+- Step간 서로 공유 가능
+
+[Step 관련 테이블]
+batch_step_execution
+- Step의 실행정보가 저장, 생성, 시작, 종료 시간, 실행상태, 메시지 등을 관리
+batch_step_execution_context
+- Step의 실행동안 여러가지 상태정보, 공유 데이터를 직렬화(json)해서 저장
+- Step 별로 저장, Step간에 공유할 수 없음
