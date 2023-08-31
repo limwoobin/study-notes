@@ -36,8 +36,10 @@ Write - 데이터를 수정된 양식으로 다시 저장한다
 
  [순서] @EnableBatchProcessing -> SimpleBatchConfiguration -> BatchConfigureConiguration (BasicBatchConfigure, JpaBatchConfigurer) -> BatchAutoConfiguration
 
+<hr>
 
-#### Job 실행 순서 및 설정
+
+### Job 실행 순서 및 설정
 1. @Configuration 선언 - 하나의 배치 job을 정의하고 빈 설정
 2. JobBuilderFactory - job 을 생성하는 빌더 팩토리
 3. StepBuilderFactory - Step 을 생성하는 빌더 팩토리
@@ -47,8 +49,9 @@ Write - 데이터를 수정된 양식으로 다시 저장한다
 7. Job 구동 -> Step 을 실행 -> Tasklet 을 실행
 
 
-#### DB 스키마 생성
-[Job] 관련 테이블
+### DB 스키마
+
+#### [Job 관련 테이블]
 batch_job_instance
 - job 실행시 jobInstance 정보가 저장, job_name과 job_key를 키로 하여 하나의 데이터가 저장
 - 동일한 job_name과 job_key로 중복 저장될 수 없음
@@ -60,9 +63,37 @@ batch_job_execution_context
 - job의 실행동안 여러가지 상태정보, 공유 데이터를 직렬화(json)해서 저장
 - Step간 서로 공유 가능
 
-[Step 관련 테이블]
+#### [Step 관련 테이블]
 batch_step_execution
 - Step의 실행정보가 저장, 생성, 시작, 종료 시간, 실행상태, 메시지 등을 관리
 batch_step_execution_context
 - Step의 실행동안 여러가지 상태정보, 공유 데이터를 직렬화(json)해서 저장
 - Step 별로 저장, Step간에 공유할 수 없음
+
+<hr>
+<br>
+
+### Batch 도메인 
+
+#### Job
+- 배치 계층 구조에서 가장 상위의 개념, 하나의 배치작업 자체를 의미
+- Job Configuration을 통해 생성되는 객체 단위, 배치작업을 어떻게 구성하고 실행할지 명세해놓은 객체
+- 스프링 배치가 기본 구현체를 제공
+- 여러 Step을 포함하고 있는 컨테이너, 반드시 한 개 이상의 Step으로 구성해야함
+
+AbstractJob
+name - Job 이름
+restartable: 재시작 여부(기본값은 true)
+JobRepository: 메타데이터 저장소
+JobExecutionListener: job 이벤트 리스너
+JobParametersIncrementer: jobParameter 증가기
+JobParametersValidator: jobParameter 검증기 
+SimpleStepHandler: Step 실행 핸들러
+
+SimpleJob
+- 순차적으로 Step을 실행시키는 Job
+- 모든 Job에서 유용하게 사용할 수 있는 표준 기능
+
+FlowJob
+- 특정 조건과 흐름에 따라 Step을 구성하여 실행시키는 Job
+- Flow 객체를 실행시켜 작업을 진행
