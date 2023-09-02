@@ -97,3 +97,13 @@ SimpleJob
 FlowJob
 - 특정 조건과 흐름에 따라 Step을 구성하여 실행시키는 Job
 - Flow 객체를 실행시켜 작업을 진행
+
+#### JobInstance
+- Job의 작업 실행을 나타냄
+(예를 들어, 하루에 한 번 씩 배치 Job이 실행된다면 매일 실행되는 Job을 JobInstance로 표현)
+- 처음 시작하는 Job, JobParameter일 경우 새로운 JobInstance 생성
+- 이전과 동일한 Job, JobParameter일 경우 이미 존재하는 JobInstance 리턴
+(내부적으로 JobName + JobKey(jobParameters의 해시값) 을 가지고 JobInstance 객체를 얻음)
+- Job과는 1:N 관계
+- Job_name, Job_key가 동일한 데이터는 중복해서 저장할 수 없음
+
