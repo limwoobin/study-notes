@@ -124,3 +124,15 @@ FlowJob
 3. BATCH_JOB_EXECUTION_PARAM 테이블과 매핑
 - JOB_EXECUTION 과 1:N 관계
 
+#### JobExecution
+1. 개념
+- JobInstance에 대한 한번의 시도를 의미하는 객체 (Job 실행 중 발생한 정보들을 저장하는 객체)
+(시작시간, 종료시간, 상태의 속성을 가짐)
+- JobInstance와의 관계
+  - JobExecution 은 FAILED, COMPLETED 등의 Job 실행 결과를 가짐
+  - JobExecution 의 실행 상태 결과가 COMPLETED면 JobInstance의 실행이 완료된 것으로 간주 (재실행 불가)
+  - JobExecution 의 실행 상태 결과가 FAILED 면 JobInstance 실행이 완료되지 않은것으로 간주 (재실행 가능)
+  (JobParameter 가 동일한 값으로 Job이 실행되더라도 JobIsntance를 계속 실행할 수 있음)
+
+2. 테이블 매핑
+- JobInstance 와 JobExecution 은 1:N 의 관계로서 JobInstance의 실행/결과를 가지고 있음
