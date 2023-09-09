@@ -136,3 +136,27 @@ FlowJob
 
 2. 테이블 매핑
 - JobInstance 와 JobExecution 은 1:N 의 관계로서 JobInstance의 실행/결과를 가지고 있음
+
+#### Step
+1. 개념
+- Batch Job 을 구성하는 독립적인 하나의 단계, 실제 배치 처리를 정의하고 컨트롤하는 모든 정보를 가진 도메인 객체
+- 단일 테스크 뿐 아닌, 입력 처리 출력 등을 포함하는 설정을 담고 있음
+- 배치작업을 어떻게 구성하고 실행할지의 Job 세부 작업을 Task 기반으로 설정/명세함
+- 모든 Job은 하나 이상의 Step으로 구성
+
+2. 기본 구현체
+- TaskletStep: 가장 기본이 되는 클래스, Tasklet 타입의 구현체를 제어
+- PartionStep: 멀티 스레드 방식으로 Step 을 여러 개로 분리해서 실행
+- JobStep: Step 내에서 Job 을 실행함
+- FlowStep: Step 내에서 Flow 를 실행
+
+[Step]
+- Step 을 실행시키는 execute 메소드
+- 실행 결과 상태는 StepExecution 에 저장됨
+
+[AbstractStep]
+- name: Step 이름
+- startLimit: Step 실행 제한 횟수
+- allowStartIfComplete: Step 실행이 완료된 후 재 실행 여부
+- stepExecutionListener: Step 이벤트 리스너
+- jobRepository: Step 메타데이터 저장소
