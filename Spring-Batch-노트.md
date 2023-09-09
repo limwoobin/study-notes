@@ -160,3 +160,19 @@ FlowJob
 - allowStartIfComplete: Step 실행이 완료된 후 재 실행 여부
 - stepExecutionListener: Step 이벤트 리스너
 - jobRepository: Step 메타데이터 저장소
+
+#### StepExecution
+기본 개념
+- Step 에 대한 한번의 시도를 의미하는 객체, Step 실행 중 발생한 정보들을 저장
+(시작시간, 종료시간, 상태, commit count, rollback count ...)
+- Step 이 매번 시도될 때마다 생성, 각 Step 별로 생성
+- Job 이 재시작 하더라도 이미 성공적으로 완료된 Step은 재실행되지 않고, 실패한 Step 만 실행됨
+- 이전 단계 Step이 실패하여 현재 Step을 실행하지 않았다면 StepExcecution을 생성하지 않음, Step이 실제로 실행되었을때만 StepExecution을 생성함
+- JobExecution 과의 관계
+  - Step의 StepExecution 이 모두 정상적으로 완료되어야 JobExecution이 정상적으로 완료됨
+  - Step의 StepExecution 중 하나라도 실패하면 JobExecution은 실패함
+
+BATCH_STEPEXECUTION 테이블과 매핑
+- JobExecution 와 StepExecution 은 1:N 관계
+- 하나의 Job에 여러 개의 Step으로 구성했을 경우 각 StepExecution 은 하나의 JobExecution을 부모로 가짐
+
