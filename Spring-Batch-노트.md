@@ -182,3 +182,4 @@ BATCH_STEPEXECUTION 테이블과 매핑
 - 청크 커밋 직전에 StepExecution 의 apply 메소드를 호출하여 상태를 업데이트 함
 - ExitStatus 의 기본 종료코드 외 사용자 정의 종료코드를 생성해 적용할 수 있음
 
+
