@@ -183,3 +183,12 @@ BATCH_STEPEXECUTION 테이블과 매핑
 - ExitStatus 의 기본 종료코드 외 사용자 정의 종료코드를 생성해 적용할 수 있음
 
 
+# [JobLauncher]
+기본 개념
+- 배치 Job을 실행시키는 역할
+- Job, Job Parameters 를 인자로 받고 요청된 배치 작업을 수행한 후 최종 client에게 JobExecution을 반환
+- 스프링 부트 배치가 구동되면 JobLauncher 빈이 자동 생성됨
+- Job 실행: JobLauncher.run(Job, JobParameters)
+
+동기적 실행: taskExecutor 를 SyncTaskExecutor 로 설정할 경우 (기본값은 SyncTaskExecutor)
+비도기적 실행: taskExecutor를 SimpleASyncTaskExecutor 로 설정할 경우
