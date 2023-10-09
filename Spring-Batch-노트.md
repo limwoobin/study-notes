@@ -182,8 +182,20 @@ BATCH_STEPEXECUTION 테이블과 매핑
 - 청크 커밋 직전에 StepExecution 의 apply 메소드를 호출하여 상태를 업데이트 함
 - ExitStatus 의 기본 종료코드 외 사용자 정의 종료코드를 생성해 적용할 수 있음
 
+#### ExecutionContext
+- 프레임워크에서 유지/관리하는 키/값으로 된 컬렉션, StepExecution 또는 JobExecution 객체의 상태를 저장하는 공유 객체
+- DB에 직렬화 된 값으로 저징됨 ["key": "value"]
+- 공유 범위
+  - Step 범위: 각 Step의 StepExecution에 저장되며 Step간 서로 공유 안됨
+  - Job 범위: 각 Job의 JobExecution에 저장되며 Job간 서로 공유 안됨, 해당 Job의 Step간에 서로 공유됨
+- Job 재시작시 이미 처리한 row 데이터는 건너뛰고 이후 수행하도록 할 때 상태 정보로 활용됨
 
-# [JobLauncher]
+- ExecutionContext 구조
+`Map<String, Object> map = new ConcurrentHashMap`
+
+#### JobRepository
+
+#### JobLauncher
 기본 개념
 - 배치 Job을 실행시키는 역할
 - Job, Job Parameters 를 인자로 받고 요청된 배치 작업을 수행한 후 최종 client에게 JobExecution을 반환
@@ -192,3 +204,6 @@ BATCH_STEPEXECUTION 테이블과 매핑
 
 동기적 실행: taskExecutor 를 SyncTaskExecutor 로 설정할 경우 (기본값은 SyncTaskExecutor)
 비도기적 실행: taskExecutor를 SimpleASyncTaskExecutor 로 설정할 경우
+
+<hr>
+
