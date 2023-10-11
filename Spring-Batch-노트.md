@@ -194,6 +194,10 @@ BATCH_STEPEXECUTION 테이블과 매핑
 `Map<String, Object> map = new ConcurrentHashMap`
 
 #### JobRepository
+기본 개념
+- 배치 작업 중의 정보를 저장하는 저장소 역할
+- Job이 언제 수행되었고, 언제 끝났으며, 몇 번이 실행되었고 실행에 대한 결과 등의 배치 작업의 수행과 관련된. 
+모든 meta data를 저장함 (jobLauncher, Job, Step 구현체 내부에서 CRUD 기능을 처리)
 
 #### JobLauncher
 기본 개념
@@ -207,3 +211,17 @@ BATCH_STEPEXECUTION 테이블과 매핑
 
 <hr>
 
+#### JobBuilderFactory
+
+JobBuilderFactory
+- JobBuilder 를 생성하는 팩토리 클래스, get method 제공
+- jobBuilderFactory.get("jobName")
+
+JobBuilder
+- job 을 구성하는 설정 조건에 따라 두 개의 하위 빌더 클래스를 생성하고 실제 Job 생성을 위임
+- SimpleJobBuilder
+  - SimpleJob 을 생성하는 Builder Class
+  - Job 실행과 관련된 여러 설정 API 를 제공
+- FlowJobBuilder
+  - FlowJob 을 생성하는 Builder 클래스
+  - 내부적으로 FolowBuilder 를 반환함으로 Flow 실행과 관련된 여러 설정 API 를 제공
