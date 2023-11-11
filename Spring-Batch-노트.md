@@ -243,3 +243,22 @@ return jobBuilderFactory.get("jobName")     // JobBuilder 를 생성하는 팩�
   .build();                                 // SimpleJob 생성
 ```
 
+#### SimnpleJob - start/next
+
+
+#### SimpleJob - validator
+- Job 실행에 필요한 파라미터를 검증하는 용도
+- DefaultJobParametersValidator 구현체를 지원, 좀 더 복잡한 제약조건이 있다면 인터페이스를 직접 구현할 수 있음
+- DefaultJobParametersValidator 는 기본 생성자, required, optional 생성자 2개를 배열로 받음
+
+#### SimpleJob - preventRestart
+- Job의 재 시작 여부를 결정
+- 기본 값은 true, false 는 이 Job 을 재시작 하지 않는다는 의미
+- Job 이 실패해도 재시작이 안되며 Job을 재시작하려고 하면 JobRestartException 이 발생
+- 재 시작과 관련 있는 기능으로, Job을 처음 실행하는 것과는 아무 관계가 없음
+- Job 의 실행이 처음이 아닌 경우, Job 의 성공/실패와는 관계없이 오직 preventRestart 설정 값에 따라 실행 여부를 판단함
+
+#### Incrementer
+- JobParameters 에서 필요한 값을 증가시켜 다음에 사용될 JobParameters 오브젝트를 리턴
+- 기존의 JobParameter 변경없이 Job 을 여러 번 시작하고자 할때
+- RunIdIncrementer 구현체를 지원하며 인터페이스를 직접 구현할 수 있음
