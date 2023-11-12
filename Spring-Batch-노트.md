@@ -262,3 +262,48 @@ return jobBuilderFactory.get("jobName")     // JobBuilder 를 생성하는 팩�
 - JobParameters 에서 필요한 값을 증가시켜 다음에 사용될 JobParameters 오브젝트를 리턴
 - 기존의 JobParameter 변경없이 Job 을 여러 번 시작하고자 할때
 - RunIdIncrementer 구현체를 지원하며 인터페이스를 직접 구현할 수 있음
+
+<br />
+
+#### StepBuilderFactory
+- StepBuilder 를 생성하는 팩토리 클래스, get(String name) 메서드 제공
+- StepBuilderFactory.get("stepName") > "stepName" 으로 Step 을 생성
+
+#### StepBuilder
+- Step 을 구성하는 설정 조건에 따라 다섯 개의 하위 빌더 클래스를 생성하고 실제 Step 생성을 위임
+- TaskletStepBuilder : TaskletStep 을 생성하는 기본 빌더 클래스
+- SimpleStepBuilder : TaskletStep 을 생성하여 내부적으로 청크기반의 작업을 처리하는 ChunkOrientedTasklet 클래스를 생성
+- PartionStepBuilder : PartionStep 을 생성하여 멀티 스레드 방식으로 Job 을 실행
+- JobStepBuilder : JobStep 을 생성하여 Step 안에서 Job 을 실행
+- FlowStepBuilder : FlowStep 을 생성하여 Step 안에서 Flow 를 실행
+
+<br>
+
+#### TaskletStep
+- 기본 개념
+  - 스프랭 배치에서 제공하는 Step 의 구현체, tasklet 을 실행시키는 도메인 객체
+  - RepeatTemplate 를 사용해 Tasklet 구문을 트랜잭션 경계 내에서 반복해서 실행함
+  - Task 기반과 Chunk 기반으로 나누어 Tasklet 을 실행함
+
+- Task vs Chunk 기반 비교
+  - 스프링 배치에서 Step 의 실행 단위는 크게 2가지로 나누어짐
+  - chunk 기반
+    - 하나의 큰 덩어리를 n개씩 나나ㅜ어 실행한다는 의미, 대량 처리를 하는 경우 효과적으로 설계 됨
+    - ItemReader, ItemProcessor, ItemWriter 를 사용해 청크 기반 전용 Tasklet 인 ChunkOrientedTasklet 구현체가 제공됨
+  - Task 기반
+    - 청크 기반보다 단일 작업 기반으로 처리되는 것이 더 효율적인 경우
+    - 주로 Tasklet 구현체를 만들어 사용
+    - 대량 처리를 하는 경우 chunk 기반에 비해 더 복잡한 구현이 필요함
+
+```java
+public Step batchStep() {
+  return stepBuilderFactory.get("batchStep")  // StepBuilder 를 생성하는 팩토리, Step 이름을 매개변수로 받음
+    .tasklet(Tasklet)                         // Tasklet 클래스 설정
+    .startLimit(10)                           // Step 의 실행 횟수 설정, 설정한 만큼 실행되고 초과시 오류 발생, 기본값은 Integer.MAX_VALUE
+    .allowStartIfComplete(true)               // Step 의 성공, 실패와 상관없이 항상 Step을 실행하기 위한 설정
+    .listener(StepExecutionListener)          // Step 의 라이프사이클의 특정 시점에 콜백 제공받도록 StepExecutionListener 설정
+    .build();                                 // TaskletStep 을 생성
+}
+
+```
+
