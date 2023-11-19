@@ -320,8 +320,15 @@ public Step batchStep() {
 - 이 메소드를 실행하게 되면 TaskletStepBuilder 가 반환되어 관련 API를 설정할 수 있음
 - Step 에 오직 하나의 Tasklet 설정이 가능, 두개 이상을 설정한 경우에는 마지막에 설정한 객체가 실행됨
 
+#### startLimit()
+- Step의 실행 횟수를 조정할 수 있음
+- Step 마다 설정할 수 있음
+- 설정 값을 초과해서 다시 실행하려 하면 StartLimitExceededException 이 발생
+- start-limit 의 디폴트는 Integer.MAX_VALUE
+
 #### allowStartIfComplete()
 - 재시작 가능ㅎ란 Job 에서 Step의 이전 성공 여부와 상관없이 항상 step을 실행하기 위한 설정
 - 실행마다 유효성을 검증하는 Step이나 사전작업이 꼭 필요한 Step 등에서 사용될 수 있음
 - 기본적으로 COMPLETED 상태를 가진 Step은 Job 재시작시 실행하지 않고 스킵한다
 - allow-start-if-complete 가 true 로 설정된 step은 항상 실행함
+
