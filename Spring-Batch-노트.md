@@ -332,3 +332,71 @@ public Step batchStep() {
 - 기본적으로 COMPLETED 상태를 가진 Step은 Job 재시작시 실행하지 않고 스킵한다
 - allow-start-if-complete 가 true 로 설정된 step은 항상 실행함
 
+#### JobStep
+- Job 에 속하는 Step 중 외부의 Job 을 포함하고 있는 Step
+- 외부의 Job 이 실패하면 해당 Step 이 실패하므로 결국 최종 기본 Job 도 실패한다
+- 모든 메타데이터는 기본 Job 과 외부 Job 별로 각각 저장된다
+- 커다란 시스템을 작은 모듈로 쪼개고 Job의 흐름을 관리하고자 할 때 사용할 수 있음
+
+```java
+public Step jobStep() {
+  return stepBuilderFactory.get("jobStep")        // StepBuilder 를 생성하는 팩토리, Step 의 이름을 매개변수로 받음
+    .job(job)                                     // JobStep 내에서 실행 될 Job 설정, JobStepBuilder 반환
+    .launcher(jobLauncher)                        // Job 을 실행할 JobLauncher 설정
+    .parametersExtractor(jobParametersExtractor)  // Step 의 ExecutionContext 를 Job 이 실행되는데 필요한 JobParameters 로 변환
+    .build();                                     // JobStep 을 생성
+}
+```
+
+<br>
+
+#### FlowJob
+- Step 을 순차적으로만 구성하는 것이 아닌 특정한 상태에 따라 흐름을 전환하도록 구성할 수 있으며 FlowJobBuilder 에 의해 생성됨
+  - Step 이 실패하더라도 Job 은 실패로 끝나지 않도록 해야 하는 경우
+  - Step 이 성공 했을때 다음에 실행해야 할 Step 을 구분해서 실행해야 하는 경우
+  - 특정 Step 은 전혀 실행되지 않게 구성해야 하는 경우
+- Flow 와 Job 의 흐름을 구성하는데만 관여하고 실제 비즈니스 로직은 Step 에서 이루어짐
+- 내부적으로 SimpleFlow 객체를 포함하고 있으며 Job 실행 시 호출함
+
+```java
+public Job batchJob() {
+  return jobBuilderFactory.get("batchJob")
+    .start(Step)                                  // Flow 시작하는 Step 설정
+    .on(String pattern)                           // Step 의 실행 결과로 돌려받는 종료상태(ExitStatus)를 캐치하여 매칭하는 패턴, TransitionBuilder 반환
+    .to(Step)                                     // 다음으로 이동할 Step 지정
+    .stop() / fail() / end() / stopAndRestart()   // Flow 를 중지 / 실패/ 종료하도록 Flow 종료
+    .from(Step)                                   // 이전 단계에서 정의한 Step 의 Flow 를 추가적으로 정의
+    .next(Step)                                   // 다음으로 이동할 Step 지정
+    .end()                                        // build() 앞에 위치하면 FlowBuilder를 종료하고 SimpleFlow 객체 생성
+    .build();
+}
+```
+
+### Transition
+
+#### BatchStatus
+- JobExecution 과 StepExecution 의 속성, Job 과 Step 의 종료 후 최종 결과 상태가 무엇인지 정의
+- SimpleJob
+  - 마지막 Step 의 BatchStatus 값을 Job 의 최종 BatchStatus 값으로 반영
+  - Step 이 실패할 경우 해당 Step 이 마지막 Step 이 된다
+- FlowJob
+  - Flow 내 Step 의 ExitStatus 값을 FlowExecutionStatus 값으로 저장
+  - 마지막 Flow 의 FlowExecutionStatus 값을 Job 의 최종 BatchStatus 값으로 반영
+
+- `ABANDONED` : 처리를 완료했지만 성공하지 못한 단계와 재시작시 건너 뛰어야 하는 단계
+
+#### ExitStatus
+- JobExecution 과 StepExecution 의 속성으로 Job 과 Step 의 실행 후 어떤 상태로 종료되었는지 정의
+- 기본적으로 ExitStatus 는 BatchStatus 와 동일한 값으로 설정됨
+
+- SimpleJob
+  - 마지막 Step 의 ExitStatus 값을 Job 의 최종 ExitStatus 값으로 반영
+- FlowJob
+  - Flow 내 Step 의 ExitStatus 값을 FlowExecutionStatus 값으로 저장
+  - 마지막 Flow 의 FlowExecutionStatus 값을 Job 의 최종 ExitStatus 값으로 반영
+
+#### FlowExecutionStatus
+- FlowExecution 의 속성으로 Flow 의 실행 후 최종 결과 상태가 무엇인지 정의
+- Flow 내 Step 이 실행되고 나서 ExitStatus 값을 FlowExecutionStatus 값으로 저장
+- FlowJob 의 배치 결과 상태에 관여함
+
