@@ -449,3 +449,23 @@ public Job batchJob() {
 - ExitStatus 를 조작하거나 StepExecutionListener 를 등록할 필요 없이 Transition 처리를 위한 전용 클래스
 - Step 과 Transition 역할을 명확히 분리해서 설정할 수 있음
 - Step 의 ExitStatus 가 아닌 JobExecutionDecider 의 FlowExecutionStatus 상태값을 새롭게 설정해서 반환함
+
+
+#### SimpleFlow
+- 스프링 배치에서 제공하는 Flow 의 구현체, 각 요소(Step, Flow, JobExecutionDecider) 들을 담고 있는 State 를 실행시키는 도메인 객체
+- FlowBuilder 를 사용해서 생성, Transition 과 조합하여 여러 개의 Flow 및 중첩 Flow 를 만들어 Job 을 구성할 수 있음
+
+Flow
+- getName(): Flow 이름 조회
+- Stage getState(String stateName): state 명으로 State 타입 반환
+- FlowExecution start(FlowExecutor executor): Flow 를 실행시키는 start 메소드, FlowExecutor 를 넘겨주어 실행을 위임함,
+실행 후 FlowExecution 을 반환
+- FlowExecution resume(String stateName, FlowExeucutor executor): 다음에 실행할 State 를 구해서 FlowExecutor 에게 실행을 위임함
+- Collection<State> getStates(): Flow 가 가지고 있는 모든 State 를 Collection 타입으로 반환
+
+SimpleFlow
+- String name: Flow 이름
+- String startState: State들 중에 처음으로 실행할 State
+- Map<String, Set<StateTransaction>> transitionMap: State 명으로 매핑되어있는 Set<StateTransition>
+- Map<String, State> stateMap: State 명으로 매핑되어 있는 State 객체
+- List<StateTransition> stateTransitions: State 와 Transition 정보를 가지고 있는 StateTransition 리스트
