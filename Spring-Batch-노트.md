@@ -469,3 +469,8 @@ SimpleFlow
 - Map<String, Set<StateTransaction>> transitionMap: State 명으로 매핑되어있는 Set<StateTransition>
 - Map<String, State> stateMap: State 명으로 매핑되어 있는 State 객체
 - List<StateTransition> stateTransitions: State 와 Transition 정보를 가지고 있는 StateTransition 리스트
+
+
+#### FlowStep
+- Step 내에 Flow 를 할당하여 실행시키는 도메인 객체
+- flowStep 의 BatchStatus 와 ExitStatus 는 Flow 의 최종 상태값에 따라 결정됨
