@@ -83,6 +83,8 @@ Stream 의 특징
 
 ## __Chapter2. Interact with data in Redis__
 
+### Search and query
+
 Redis Stack 은 향상된 Redis 환경을 다음과 같은 기능들을 제공함
 
 - 풍부한 쿼리 언어
@@ -185,6 +187,36 @@ SCHEMA
    |
 
 
+
+### Redis programmability
+
+Lua 및 Redis 함수로 Redis 확장하기
+
+Redis 는 서버 자체에서 사용자 정의 스크립트를 수행할 수 있는 인터페이스를 제공, Redis 7 이상에서는 Redis Function,  
+Redis 6.2 이하에서는  Lua scripting with the EVAL command 를 사용해 서버를 프로그래밍함
+
+Redis programmability 라는 용어는 서버에서 임의의 사용자 정의 로직을 실행할 수 있는 기능을 의미(스크립트).  
+스크립트를 데이터가 존재하는 곳(서버)에서 처리할 수 있게 해준다. 또한 스크립트를 Redis 에 내장하면 네트워크 트래픽을 줄이고 성능을 개선하는데에 도움이 된다.  
+
+eval: 주로 스크립트 언어에서 사용되며, 문자열로 표현된 코드를 실행하는 기능을 제공.
+Lua Script: Lua 프로그래밍 언어로 작성된 스크립트로 빠르고 가벼운 특징이 있고 임베디드 시스템이나 Redis 와 같은 데이터베이스에서 스크립트 언어로 사용됨.  
+Redis에서 Lua Script 는 `EVAL` or `EVALSHA` 명령어로 사용됨
+
+Spring에서 사용되는 라이브러리중 Redisson 과 Lettuce 의 가장 큰 차이가 바로 이 Lua Script 사용여부이다.
+Redisson 에서는 Lua Script 를 사용해 보다 빠른 연산이 된다는 장점이 있다. 
+e.g.1 프로젝트에 "EVAL", "EVALSHA" 로 검색시 해당 키워드를 사용하는것을 찾을 수 있음  
+e.g.2 RedissonLock.java 의 tryLockInnerAsync method(198 line) 확인
+
+#### Lua Script 로 Redis 명령 호출하는 방법
+- redis.pcall(): 함수 호출로 인해 발생한 오류를 스크립트의 실행 컨텍스트로 반환
+- redis.call(): 함수 호출로 인해 발생한 오류를 실행한 클라이언트에게 직접 반환
+
+e.g
+```
+> EVAL "return redis.call('SET', KEYS[1], ARGV[1])" 1 foo bar
+OK
+```
+위 스크립트는 하나의 키 이름과 하나의 값을 입력 인수로 허용. 실행되면 스크립트는 문자열 값 "bar"를 사용하여 SET입력 키 foo 를 설정하는 명령을 호출
 
 
 
