@@ -202,7 +202,7 @@ eval: 주로 스크립트 언어에서 사용되며, 문자열로 표현된 코�
 Lua Script: Lua 프로그래밍 언어로 작성된 스크립트로 빠르고 가벼운 특징이 있고 임베디드 시스템이나 Redis 와 같은 데이터베이스에서 스크립트 언어로 사용됨.  
 Redis에서 Lua Script 는 `EVAL` or `EVALSHA` 명령어로 사용됨
 
-Spring에서 사용되는 라이브러리중 Redisson 과 Lettuce 의 가장 큰 차이가 바로 이 Lua Script 사용여부이다.
+Spring에서 사용되는 라이브러리중 Redisson 과 Lettuce 의 Redis Lock 사용시 큰 차이중 하나가 바로 이 Lua Script 사용여부이다.
 Redisson 에서는 Lua Script 를 사용해 보다 빠른 연산이 된다는 장점이 있다. 
 e.g.1 프로젝트에 "EVAL", "EVALSHA" 로 검색시 해당 키워드를 사용하는것을 찾을 수 있음  
 e.g.2 RedissonLock.java 의 tryLockInnerAsync method(198 line) 확인
@@ -219,4 +219,103 @@ OK
 위 스크립트는 하나의 키 이름과 하나의 값을 입력 인수로 허용. 실행되면 스크립트는 문자열 값 "bar"를 사용하여 SET입력 키 foo 를 설정하는 명령을 호출
 
 
+
+## Transaction
+
+Redis 트랜잭션을 사용하면 단일 단계로 명령을 실행할 수 있음, 명령어는 `MULTI, EXEC, DISCARD, WARTCH` 로 사용할 수 있음.  
+트랜잭션은 다음과 같이 두가지 중요한 사항을 보장함
+
+- 트랜잭션의 모든 명령은 직렬화되어 순차적으로 실행됨
+    - 다른 클라이언트가 보낸 요청은 절대 Redis 트랜잭션이 실행되는 도중에 제공되지 않음
+- `EXEC` 명령은 트랜잭션의 모든 명령을 트리거하고 있음
+    - 클라이언트가 EXEC 명령을 호출하기 전에 서버와의 연결이 끊어지면 어떠한 작업도 수행되니 않음
+    - 대신 `EXEC` 명령이 호출되면 모든 작업이 수행됨
+
+
+#### 예시
+
+```
+> MULTI
+OK
+> INCR foo
+QUEUED
+> INCR bar
+QUEUED
+> EXEC
+1) (integer) 1
+2) (integer) 1
+```
+- `MULTI` 명령을 사용해 Redis 트랜잭션을 입력, 이 명령은 항상 OK 로 응답, 이 시점에 사용자가 입력한 명령들은 Queue 에 대기함
+- `EXEC` 가 호출되면 모든 명령이 실행됨
+- 대신 `DISCARD` 가 호출되면 트랜잭션의 큐가 플러시되고 트랜잭션이 종료됨
+
+#### 트랜잭션 내부의 에러
+
+트랜잭션에서 두 가지 종류의 에러가 발생할 수 있음
+- 명령어를 큐에 넣지 못하여 `EXEC` 가 호출되기 전에 오류가 발생할 수 있음
+    - e.g) 명령어 구문이 잘못되엇거나, 인수가 잘못되었거나, 명령이 서버의 메모리 제한을 갖도록 구성된 경우
+- 잘못된 값의 키에 대해 연산이 수행되는 경우 EXEC 가 호출된 이후 명령이 실패할 수 있음
+    - e.g) 문자열에 대해 연산을 호출하는 경우
+
+```
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is '^]'.
+MULTI
++OK
+SET a abc
++QUEUED
+LPOP a
++QUEUED
+EXEC
+*2
++OK
+-WRONGTYPE Operation against a key holding the wrong kind of value
+```
+다음과 같이 key a 에 문자열 abc 를 넣고 리스트 요소를 제거하는 LPOP 명령어를 사용한 경우엔 잘못된 명령어를 사용했다고 볼 수 있음.  
+명령이 실패하더라도 대기열의 다른 모든 명령은 처리된다는 점을 유의해야함
+
+- 잘못된 명령어의 사용에 대해서는 `DISCARD` 명령어가 실행되면서 `Queue` 에 있던 데이터가 지워짐
+- 다만, 명령어는 올바르지만 잘못된 자료구조를 사용한 경우에는 에러가 발생하더라도 모든 커맨드를 실행함, 롤백도 되지 않음
+
+
+#### 트랜잭션의 롤백
+
+롤백은 Redis의 단순성과 성능에 큰 영향을 미치기에 롤백은 지원하지 않음
+
+#### 대기열 삭제
+
+DISCARD는 트랜잭션을 중단하는 데 사용할 수 있음. 이 경우 어떠한 명령도 실행되지 않고 연결 상태가 정상으로 복원됨.
+
+```
+> SET foo 1
+OK
+> MULTI
+OK
+> INCR foo
+QUEUED
+> DISCARD
+OK
+> GET foo
+"1"
+```
+
+#### Optimistic locking using check-and-set (확인 및 삭제를 위한 낙관적 락)
+
+WATCH된 키는 해당 키에 대한 변경을 감지하기 위해 모니터링 되고 있음.  
+EXEC 명령이 실행되기 전에 하나 이상의 watched 키가 수정되면 전체 트랜잭션이 중단되고 EXEC는 트랜잭션이 실패했음을 알리기 위해 Null 응답을 반환함.
+
+```
+WATCH mykey
+val = GET mykey
+val = val + 1
+MULTI
+SET mykey $val
+EXEC
+```
+
+위의 코드를 사용하면 경합 조건이 발생하고 WATCH 호출과 EXEC 호출 사이에 다른 클라이언트가 val의 결과를 수정하면 트랜잭션이 실패하여 Null 응답을 반환함.
+
+__더 알아야 할 점__
+- `WATCH` 명령어 실행시 타 클라이언트에서 접근한것을 어떻게 감지하여 트랜잭션을 실패처리할까?
 
