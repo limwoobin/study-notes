@@ -319,3 +319,71 @@ EXEC
 __더 알아야 할 점__
 - `WATCH` 명령어 실행시 타 클라이언트에서 접근한것을 어떻게 감지하여 트랜잭션을 실패처리할까?
 
+
+## Redis Pub/Sub
+
+- SUBSCRIBE, UNSUBSCRIBE and PUBLISH 는 게시/구독 메시징 패러다임을 구현함
+- 대신 발행된 메시지는 어떤 구독자가 있는지 알 수 없는 상태로 채널에 전송됨
+- 구독자 또한 어떤 퍼블리셔가 있는지 모르고 채널에만 관심사를 가짐
+
+> SUBSCRIBE channel11 ch:00
+`channel11` 및 `ch:00` 채널을 구독하기 위해선 위의 명령어를 실행함
+
++ 하나 이상의 채널을 구독하는 클라이언트는 다른 채널에 대해  SUBSCRIBE and UNSUBSCRIBE 명령은 할 수 있지만 다른 커맨드를 실행해서는 안됨
+
+#### Redis Pub/Sub 특징
+- 메시지를 발행할때 subscriber 측에서 메시지를 정확히 수신했는지 확인하지 않음
+- 채널을 구독하는 subscriber 가 없어도 메시지를 채널에 전송하고 날려버림
+- kafka 와 달리 메시지를 발행하고 subscriber 가 받았는지 확인하는 작업, 메시지 발행 후 다른 브로커에 메시지를 replication 하는 작업이 없기에 비교적 빠름
+    - toss 에서는 이 장점을 이용하여 토스증권의 시세데이터를 노출하는데에 사용하였음 (kafka 에 비해 데이터가 유실될 가능성은 있지만 그만큼 레이턴시가 낮음). 
+    https://www.youtube.com/watch?v=SF7eqlL0mjw&list=PL1DJtS1Hv1PiGXmgruP1_gM2TSvQiOsFL&index=14
+
+#### Pub/Sub 명령어
+
+SUBSCRIBE channel [channel ...]
+- 지정한 채널로 보내진 메시지를 받습니다. 
+- 채널을 여러 개 지정할 수 있습니다.
+
+PSUBSCRIBE pattern [pattern ...]
+- 채널을 패턴으로 등록한다. 패턴을 여러 개 등록할 수 있다.
+- 패턴은 아래와 같은 glob-style을 지원한다.
+    - '?'는 한 글자를 대치한다.   h?llo는 hello, hallo, hxllo 같은 것을 의미한다.
+    - '*'은 공백이나 여러 글자를 대치한다.   h*llo는 hllo, heeeello 같은 것을 의미한다.
+    - h[ae]llo는 'a' 나 'e'만 올 수 있다.   그래서 hello, hallo는 되고, hillo는 안된다.
+
+```
+6379> psubscribe ch*
+Reading messages... (press Ctrl-C to quit)
+1) "psubscribe"
+2) "ch*"
+3) (integer) 1
+```
+
+UNSUBSCRIBE [channel [channel ...]]
+- SUBSCRIBE로 등록한 채널을 삭제해서, 더 이상 메시지를 받지 않습니다.
+- 채널명을 입력하지 않으면 해당 클라이언트에 등록된 모든 채널을 삭제합니다.
+
+PUNSUBSCRIBE [pattern [pattern ...]]
+- PSUBSCRIBE로 등록한 패턴을 삭제해서, 더 이상 메시지를 받지 않습니다.
+- 패턴명을 입력하지 않으면 해당 클라이언트에 등록된 모든 패턴을 삭제합니다.
+
+PUBLISH channel message
+- 메시지를 지정한 채널로 보냅니다.
+- 메시지를 받는 클라이언트 수를 리턴합니다.
+
+PUBSUB subcommand [argument [argument ...]]
+- PUBSUB 명령은 서버에 등록된 채널이나 패턴을 조회한다.
+- 세 가지 subcommand가 있다.   channels, numsub, numpat입니다.
+- channels, numsub은 채널 관련 명령이고, numpat은 패턴 관련 명령이다.
+
+PUBSUB channels [pattern]
+- Pattern을 입력하지 않으면 해당 서버에 등록된 모든 채널명을 보여준다.
+
+PUBSUB numsub [channel-1 ... channel-n]
+- 해당 채널에 등록된 클라이언트 개수를 보여준다.
+
+PUBSUB numpat
+- 서버에 등록된 pattern의 개수를 보여준다.
+
+Redis Pub/Sub 의 자료구조 참고. 
+http://redisgate.kr/redis/command/pubsub_intro.php
