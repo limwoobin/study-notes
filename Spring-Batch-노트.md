@@ -474,3 +474,27 @@ SimpleFlow
 #### FlowStep
 - Step 내에 Flow 를 할당하여 실행시키는 도메인 객체
 - flowStep 의 BatchStatus 와 ExitStatus 는 Flow 의 최종 상태값에 따라 결정됨
+
+#### @JobScope / @StepScope
+
+Scope
+- 스프링 컨테이너에서 빈이 관리되는 범위
+- singleton, prototype, request, session 등이 있으며 기본은 singleton 으로 생성됨
+
+- @JobScope, @StepScope
+  - Job 과 Step 의 빈 생성과 실행에 관여하는 스코프
+  - 프록시 모드를 기본으로 함 `@Scope(value = "job", proxyMode = ScopeProxyMode.TARGET_CLASS)` 
+  - 해당 스코프가 선언되면 빈이 생성이 어플리케이션 실행시점이 아닌 빈의 실행시점에 이루어짐
+    - @Values 를 주입해서 빈의 실행시점에 값을 참조할수 있음 (Lazy Binding)
+    - @Values 를 사용할 경우 빈 선언문에 @JobScope, @StepScope 를 정의하지 않으면 오류를 발생하므로 반드시 선언해야 함
+  - 병렬처리 시 각 스레드마다 생성된 스코프 빈이 할당되기에 thread safe 하게 실행이 가능함
+
+@JobScope
+- Step 선언문에 정의한다
+- @Value: jobParameter, jobExecutionContext 만 사용 가능
+
+@StepScope
+- Tasklet 이나 ItemReader, ItemWriter, ItemProcessor 선언문에 정의함
+- @Value: jobParameter, jobExecutionCOntext, stepExecutionContext 사용가능
+
+#### @JobScope / @StepScope 아키텍처
