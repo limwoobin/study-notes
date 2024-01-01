@@ -498,3 +498,11 @@ Scope
 - @Value: jobParameter, jobExecutionCOntext, stepExecutionContext 사용가능
 
 #### @JobScope / @StepScope 아키텍처
+
+
+
+<br /><br />
+<hr>
+
+- ItemReader 는 읽어올 데이터가 없다면 명시적으로 null 을 반환해야함  
+그래야 Reader 가 종료된것을 알 수 있음, 그렇지 않으면 Reader 가 무한루프가 될 수도 있음
