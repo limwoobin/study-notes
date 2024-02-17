@@ -506,3 +506,13 @@ Scope
 
 - ItemReader 는 읽어올 데이터가 없다면 명시적으로 null 을 반환해야함  
 그래야 Reader 가 종료된것을 알 수 있음, 그렇지 않으면 Reader 가 무한루프가 될 수도 있음
+
+
+## Batch 주의사항
+
+Spring Boot, Mysql 환경에서 CursorItemReader 사용시 주의사항
+- JPACursorItemReader 는 모든 데이터를 메모리에 들고오기에 위험할 수 있음
+- Jdbc, Hibernate Cursor 는 적은 메모리로 많은 용량을 처리할 수 있음,  
+하지만 `mysql-connector-java` 드라이버 사용시 그냥은 cursor fetch 기능을 사용못함.  
+그래서 `jdbc:mysql://localhost/?useCursorFetch=true` 와 같이 `useCursurFetch` 옵션을 넣어주어야만 Mysql 의 cursor 기능을 사용할 수 있음
+- 위 설정이 누락되면 일반 쿼리처럼 모든 데이터를 한번에 가져오게 됨
