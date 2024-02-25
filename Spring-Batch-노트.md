@@ -516,3 +516,5 @@ Spring Boot, Mysql 환경에서 CursorItemReader 사용시 주의사항
 하지만 `mysql-connector-java` 드라이버 사용시 그냥은 cursor fetch 기능을 사용못함.  
 그래서 `jdbc:mysql://localhost/?useCursorFetch=true` 와 같이 `useCursurFetch` 옵션을 넣어주어야만 Mysql 의 cursor 기능을 사용할 수 있음
 - 위 설정이 누락되면 일반 쿼리처럼 모든 데이터를 한번에 가져오게 됨
+
+
