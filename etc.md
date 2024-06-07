@@ -56,3 +56,10 @@ e.g) 유저를 저장할때 유저 히스토리도 저장하는데 이때 히스
 	- 메시지 크기가 512 바이트보다 큰 경우 (DNS 는 512byte 크기 제한이 있음)
 	- zone 정보 동기화 하는 경우(master 와 slave 간에) -> zone-transfer
 	- zone-transfer: DNS 트랜잭션의 한 유형으로 여러대의 DNS 서버간에 DNS 데이터베이스를 복제하는데 사용되는 방법
+
+
+## Redis 야무지게 사용하기
+
+1. Redis 캐시로 사용하기
+2. Redis 데이터 타입
+3. Redis 데이터 영구 저장(RDB vs AOF)
