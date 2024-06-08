@@ -60,6 +60,72 @@ e.g) 유저를 저장할때 유저 히스토리도 저장하는데 이때 히스
 
 ## Redis 야무지게 사용하기
 
-1. Redis 캐시로 사용하기
-2. Redis 데이터 타입
-3. Redis 데이터 영구 저장(RDB vs AOF)
+#### 사용하면 안되는 커맨드
+- `keys *` 사용하지 않기, `keys * -> scan` 으로 대체
+- `hgetall -> hscan`
+- `del -> unlink`
+
+#### 변경하면 장애를 막을 수 있는 기본 설정값
+
+`STOP-WRITES-ON-BGSAVE-ERROR = NO`
+- 기본값은 yes
+- RDB 파일 저장 실패시 redis 로의 모든 write 를 불가능하게 하는것
+- 이 설정을 꺼두는게 오히려 장애를 막을 수 있는 방법일 수 있다
+
+`MAXMEMORY-POLICY = ALLKEYS-LRU`
+- 메모리가 가득 찼을때 MAXMEMORY-POLICY 정책에 의해 키가 관리됨
+	- 기본값은 noeviction : 삭제안함 이다, 이는 메모리가 가득차면 아무액션을 하지않기에 에러가 발생할듯
+	- allkeys-lru 같은 설정을 쓰자
+	- volatile-lru 는 ttl 이 있는 key 만 삭제하기에 ttl 이 없다면 동일상황이 발생할 수 있음
+- redis 를 캐시로 사용할때 Expire Time 설정 권장
+
+#### Persistence / 복제 사용 시 MaxMemory 설정 주의
+- Copy-on-Write 로 인해 메모리 복재할때 메모리를 두개 가량 사용하는 경우가 발생할 수 있음
+- 그렇기에 Persistence / 복제 사용시 MAXMEMORY 는 실제 메모리의 절반으로 설정하는게 안전
+e.g) 4GB -> 2G (2048MB)
+
+
+#### Memory 관리
+
+물리적으로 사용되고 있는 메모리를 모니터링
+used_memory 값 보다 used_memory_rss 값을 보는게 더 중요하다
+
+- used_memory: 논리적으로 Redis 가 사용하는 메모리
+- used_memory_rss: OS 가 Redis 에 할당하기 위해 사용한 물리적 메모리 양
+- 삭제되는 키가 많으면 fragmentation 증가
+	- 특정 시점에 피크를 찍고 다시 삭제되는 경우
+	- TTL 로 인한 eviction 이 많이 발생하는 경우
+
+
+
+## 리눅스 중요 명령어
+
+### IP 를 확인하는 명령어, 자신의 Public IP 는 어떻게 확인하나요?
+- 대표적으로는  curl ifconfig.co, curl ifconfig.me
+
+### CURL 의 옵션별 사용법
+
+### Domain 의 IP 를 조회하는 명령어는?
+- nslookup
+
+### 웹서버 혹은 DB 같은 서버들을 확인하는 방법
+- telnet 과 ping 을 구분하는 의도
+
+### 내 서버의 서버가 잘 떠있는지, 현재 DB 커넥션 등을 확인하는 명령어는?
+- netstat 명령어와 그 옵션들을 잘 아는지에 대한 의도임
+- netstat -lntp
+- netstat -an | grep "port"
+
+### 리눅스에서 특정 프로세스를 확인하는 명령어는?
+- ps 명령어
+- ps -ef | grep ""
+- ps -aux | grep ""
+
+### 리눅스에서 CPU, Memory, Disk 등 시스템 정보를 확인하는 명령어는?
+- top, sar, free, df ...
+
+### 리눅스에서 서비스들은 어떻게 관리되고, 그와 연관된 명령어는?
+- service, sysctl, systemd 명령어
+
+### 리눅스 파일권한 체계를 이해하고 있는지?
+- chmod, chown 에 대한 질문
