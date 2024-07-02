@@ -105,6 +105,7 @@ used_memory 값 보다 used_memory_rss 값을 보는게 더 중요하다
 	- 별도 스레드는 일반적으로 I/O 작업이나 데이터 백업작업을 진행함
 
 <hr />
+<br />
 
 ## 리눅스 중요 명령어
 
@@ -137,3 +138,10 @@ used_memory 값 보다 used_memory_rss 값을 보는게 더 중요하다
 
 ### 리눅스 파일권한 체계를 이해하고 있는지?
 - chmod, chown 에 대한 질문
+
+<hr />
+<br />
+
+Kafka 
+
+Transactional Outbox Pattern은 분산 시스템에서 데이터베이스 트랜잭션과 메시지 큐를 조합하여 데이터 일관성과 메시지 전송의 원자성을 보장하는 패턴
